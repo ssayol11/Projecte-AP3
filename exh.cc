@@ -16,12 +16,12 @@ double now(){
     return clock() / double(CLOCKS_PER_SEC);
 }
 
-void read(){
+void llegir(){
     cin >> num_pelicules;
     for (int i = 0; i < num_pelicules; ++i){
-        string film;
-        cin >> film;
-        pelicules.insert({film, i});
+        string pelicula;
+        cin >> pelicula;
+        pelicules.insert({pelicula, i});
     }
     cin >> num_restriccions;
     restriccions = vector<vector<bool>>(num_pelicules, vector<bool>(num_pelicules, false));
@@ -103,7 +103,7 @@ void organitzar_festival(vector<vector<int>>& festival, vector<bool>& utilitzade
 
 int main(){
     double inici = now();
-    read();
+    llegir();
     vector<bool> utilitzades(num_pelicules, false);
     vector<vector<int>> festival(num_pelicules, vector<int>(num_sales, -1));
     int pelis_utilitzades = 0;
