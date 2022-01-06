@@ -3,14 +3,18 @@
 #include <string>
 #include <map>
 #include <ctime>
+#include <fstream>
+#include <cstdlib>
 using namespace std;
 
 int num_pelicules, num_restriccions, num_sales;
-map<string, int> pelicules;
-map<string, int> sales;
+map<string, int> pelicules_to_int;
+map<int, string> int_to_pelicules;
+map<string, int> sales_to_int;
+map<int, string> int_to_sales;
 vector<vector<bool>> restriccions;
-int dies_minims = 100000000;
-int menors_dies;
+int millor_solucio_actual = 1000000;
+int solucio_optima;
 
 double now(){
     return clock() / double(CLOCKS_PER_SEC);
@@ -21,15 +25,16 @@ void llegir(){
     for (int i = 0; i < num_pelicules; ++i){
         string pelicula;
         cin >> pelicula;
-        pelicules.insert({pelicula, i});
+        pelicules_to_int.insert({pelicula, i});
+        int_to_pelicules.insert({i, pelicula});
     }
     cin >> num_restriccions;
     restriccions = vector<vector<bool>>(num_pelicules, vector<bool>(num_pelicules, false));
     for (int i = 0; i < num_restriccions; ++i){
         pair<string, string> parella;
         cin >> parella.first >> parella.second;
-        auto x = *pelicules.find(parella.first);
-        auto y = *pelicules.find(parella.second);
+        auto x = *pelicules_to_int.find(parella.first);
+        auto y = *pelicules_to_int.find(parella.second);
         restriccions[x.second][y.second] = true;
         restriccions[y.second][x.second] = true;
     }
@@ -37,80 +42,70 @@ void llegir(){
     for (int i = 0; i < num_sales; ++i){
         string sala;
         cin >> sala;
-        sales.insert({sala, i});
+        sales_to_int.insert({sala, i});
+        int_to_sales.insert({i, sala});
     }
-    if (num_pelicules % num_sales == 0){
-        menors_dies = num_pelicules / num_sales;
-    } else {
-        menors_dies = (num_pelicules / num_sales);
-    }
+    solucio_optima = num_pelicules / num_sales;
 }
 
 bool compatible(vector<vector<int>>& festival, int dia_actual, int candidat){
     for (int i = 0; i < num_sales; ++i){
-        if (festival[dia_actual][i] == -1){
-            return true;
-        } else {
-            if (restriccions[candidat][festival[dia_actual][i]]){
-                return false;
-            }
-        }
+        if (festival[dia_actual][i] == -1) return true;
+        else if (restriccions[candidat][festival[dia_actual][i]]) return false;
     }
     return true;
 }
 
-void escriure(const vector<vector<int>>& festival){
-    cout << "   d1 d2 d3 d4 d5 d6" << endl;
-    for (int i = 0; i < festival[0].size(); ++i){
-        cout << 's' << i + 1 << ' ';
-        for (int j = 0; j < festival.size(); ++j){
-            if (festival[j][i] != -1){
-                cout << 0 << festival[j][i] + 1 << ' ';
-            } else {
-                cout << "-- ";
+void escriure(const vector<vector<int>>& festival, float inici){
+    double final = now();
+    double t = inici - final;
+    cout << t << endl;
+    cout << millor_solucio_actual + 1 << endl;
+    for (int i = 0; i < festival.size(); ++i){
+        for (int j = 0; j < festival[0].size(); ++j){
+            if (festival[i][j] != -1){
+                auto peli = *int_to_pelicules.find(festival[i][j]);
+                auto sala = *int_to_sales.find(j);
+                cout << peli.second << ' ' << i + 1 << ' ' << sala.second << endl;
             }
         }
-        cout << endl;
     }
-    cout << "--------------" << endl;
 }
 
-void organitzar_festival(vector<vector<int>>& festival, vector<bool>& utilitzades, int pelis_utilitzades, int pelis_utilitzades_dia, int dia_actual){
-    if (dies_minims == menors_dies){
-        return;
-    } else if (pelis_utilitzades == num_pelicules){
-        if (dia_actual < dies_minims){
-            dies_minims = dia_actual;
-            cout << dies_minims << endl;
-            cout << menors_dies << endl;
-            escriure(festival);
+void organitzar_festival(vector<vector<int>>& festival, vector<bool>& utilitzades, int pelis_utilitzades, int pelis_utilitzades_dia, int dia_actual, float inici){
+    if (pelis_utilitzades == num_pelicules){
+        if (dia_actual < millor_solucio_actual){
+            millor_solucio_actual = dia_actual;
+            escriure(festival, inici);
         }
+    } else if (millor_solucio_actual == solucio_optima){
+        return;
     } else if (pelis_utilitzades_dia < num_sales){
         for (int candidat = 0; candidat < num_pelicules; ++candidat){
             if (not utilitzades[candidat]){
                 if (compatible(festival, dia_actual, candidat)){
                     festival[dia_actual][pelis_utilitzades_dia] = candidat;
                     utilitzades[candidat] = true;
-                    organitzar_festival(festival, utilitzades, pelis_utilitzades + 1, pelis_utilitzades_dia + 1, dia_actual);
+                    organitzar_festival(festival, utilitzades, pelis_utilitzades + 1, pelis_utilitzades_dia + 1, dia_actual, inici);
                     utilitzades[candidat] = false;
                 }
             }
         }
     } else {
-        organitzar_festival(festival, utilitzades, pelis_utilitzades, 0, dia_actual + 1);
+        organitzar_festival(festival, utilitzades, pelis_utilitzades, 0, dia_actual + 1, inici);
     }
 }
 
 int main(){
+    cout.setf(ios::fixed);
+    cout.precision(1);
     double inici = now();
     llegir();
     vector<bool> utilitzades(num_pelicules, false);
     vector<vector<int>> festival(num_pelicules, vector<int>(num_sales, -1));
+    cout << festival.size() << ' ' << festival[0].size() << endl;
     int pelis_utilitzades = 0;
     int pelis_utilitzades_dia = 0;
     int dia_actual = 0;
-    organitzar_festival(festival, utilitzades, pelis_utilitzades, pelis_utilitzades_dia, dia_actual);
-    double final = now();
-    double t = inici - final;
-    cout << t << endl;
+    organitzar_festival(festival, utilitzades, pelis_utilitzades, pelis_utilitzades_dia, dia_actual, inici);
 }
