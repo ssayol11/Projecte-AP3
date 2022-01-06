@@ -127,9 +127,7 @@ int main(int argc, char** argv)
     int dies_best_solucio_actual = dies_best_solucio;
     escriure_sol();
     int min = num_pel / num_sal;
-    if (num_pel % num_sal != 0) {
-        ++min;
-    }
+    if (num_pel % num_sal != 0) ++min;
     for (double t = 1; t > 0 and min < dies_best_solucio_actual; t *= 0.9) {
         vector<string> copia_pel = pel;
         swap();
