@@ -1,3 +1,4 @@
+#include <cmath>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -14,9 +15,14 @@ vector<string> sal;
 string nom_fitxer;
 vector<vector<int>> plan;
 
-void read(const string& data)
+double now()
 {
-    ifstream in(data);
+    return clock() / double(CLOCKS_PER_SEC);
+}
+
+void read(const string& dades)
+{
+    ifstream in(dades);
     in >> num_pel;
     pel = vector<string>(num_pel);
     for (int i = 0; i < num_pel; ++i) {
@@ -91,14 +97,55 @@ int dies_gready()
             ++num_pel_dia;
         }
     }
-    escriure_sol();
     return plan[0].size();
+}
+
+bool p(double t, int dies_sol, int dies_best_solucio)
+{
+    double p = exp(-((dies_sol - dies_best_solucio) / t));
+    double i = ((double)rand() / (RAND_MAX));
+    if (i < p) {
+        return true;
+    }
+    return false;
+}
+
+void swap()
+{
+    int i = (rand() % num_pel);
+    int j = (rand() % num_pel);
+    if (i != j) {
+        string c = pel[j];
+        pel[j] = pel[i];
+        pel[i] = c;
+    } else {
+        swap();
+    }
 }
 
 int main(int argc, char** argv)
 {
-    double now();
     read(argv[1]);
     nom_fitxer = argv[2];
     int dies_best_solucio = dies_gready();
+    int dies_best_solucio_actual = dies_best_solucio;
+    escriure_sol();
+    int min = num_pel / num_sal;
+    if (num_pel % num_sal != 0) ++min;
+    for (double t = 1; t > 0 and min < dies_best_solucio_actual; t *= 0.9) {
+        vector<string> copia_pel = pel;
+        swap();
+        int dies_sol = dies_gready();
+        if (dies_sol < dies_best_solucio_actual) {
+            dies_best_solucio_actual = dies_sol;
+            if (dies_sol < dies_best_solucio) {
+                escriure_sol();
+                dies_best_solucio = dies_sol;
+            }
+        } else if (p(t, dies_sol, dies_best_solucio)) {
+            dies_best_solucio_actual = dies_sol;
+        } else {
+            pel = copia_pel;
+        }
+    }
 }
