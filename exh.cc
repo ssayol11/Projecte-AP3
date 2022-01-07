@@ -8,22 +8,27 @@
 using namespace std;
 
 int num_pelicules, num_restriccions, num_sales;
+//creem diccionaris que ens permeten permutar entre pelis/sales i els seus numeros corresponents en l'execució del programa
 map<string, int> pelicules_to_int;
 map<int, string> int_to_pelicules;
 map<string, int> sales_to_int;
 map<int, string> int_to_sales;
+//matriu que ens indica amb un True si entre les pelis i, j hi ha alguna incompatibilitat
 vector<vector<bool>> restriccions;
 int millor_solucio_actual;
 int solucio_optima;
 string fitxer_sortida;
 
+//funció que retorna el temps actual (ens servira per calcular el temps d'execucio del programa)
 double now()
 {
     return clock() / double(CLOCKS_PER_SEC);
 }
 
+//inicialitzem el nostre inici de programa
 const double inici = now();
 
+//funció per llegir les dades del nostre fitxer de text amb la que inicialitzem totes les variables
 void llegir(const string& dades)
 {
     ifstream in(dades);
@@ -32,7 +37,7 @@ void llegir(const string& dades)
         exit(1);
     }
     in >> num_pelicules;
-    millor_solucio_actual = num_pelicules;
+    millor_solucio_actual = num_pelicules; //la millor solució inicialment es la que posa, a cada dia, una pelicula diferent (evitant aixi incompatibilitats)
     for (int i = 0; i < num_pelicules; ++i) {
         string pelicula;
         in >> pelicula;
@@ -56,6 +61,7 @@ void llegir(const string& dades)
         sales_to_int.insert({ sala, i });
         int_to_sales.insert({ i, sala });
     }
+    //considerem que la solució optima es aquella on posa a cada dia tantes pelicules com sales hi ha
     solucio_optima = num_pelicules / num_sales;
     if (num_pelicules % num_sales == 0) {
         --solucio_optima;
@@ -63,6 +69,7 @@ void llegir(const string& dades)
     in.close();
 }
 
+//funció que retorna si una pelicula és compatible en una posició segons les pelicules anteriors que es reprodueixen en aquell dia
 bool compatible(vector<vector<int>>& festival, int dia_actual, int candidat)
 {
     for (int i = 0; i < num_sales; ++i) {
@@ -74,6 +81,7 @@ bool compatible(vector<vector<int>>& festival, int dia_actual, int candidat)
     return true;
 }
 
+//funció per escriure la nostra sortida en un fitxer de text
 void escriure(const vector<vector<int>>& festival, float inici)
 {
     ofstream fitxer;
@@ -96,6 +104,8 @@ void escriure(const vector<vector<int>>& festival, float inici)
     fitxer.close();
 }
 
+//funció recursiva que per a totes les pelis i per a tots els dies va colocant una per una (cada peli) i torna a cridar-se a si mateixa
+//quan la solució trobada és igual a la solució optima es para l'execució amb un return
 void organitzar_festival(vector<vector<int>>& festival, vector<bool>& utilitzades, int pelis_utilitzades, int pelis_utilitzades_dia, int dia_actual, float inici)
 {
     if (pelis_utilitzades == num_pelicules) {
