@@ -119,44 +119,64 @@ bool p(double t, int dies_sol, int dies_best_solucio)
 }
 
 //funció que busca un nou vei
-void swap()
+void swap(int& z, int& w)
 {
-    int i = (rand() % num_pel);
-    int j = (rand() % num_pel);
-    if (i != j) {
-        string c = pel[j];
-        pel[j] = pel[i];
-        pel[i] = c;
-    } else {
-        swap();
+    for (int i = w; i < num_sal; ++i) {
+        for (int o = 0; o < plan[0].size(); ++o) {
+            if (plan[i][o] == -1 and z < o) {
+                int pos = plan[i][z];
+                ++z;
+                string c = pel[num_pel - 1];
+                pel[num_pel - 1] = pel[pos];
+                pel[pos] = c;
+                vector<int> c_res = res[num_pel - 1];
+                res[num_pel - 1] = res[pos];
+                res[pos] = c_res;
+                return;
+            }
+        }
+        z = 0;
+        w = i;
     }
 }
 
 int main(int argc, char** argv)
 {
-    read(argv[1]);
+    double now();
+    llegir(argv[1]);
     nom_fitxer = argv[2];
-    int dies_best_solucio = dies_gready();
+    int dies_best_solucio = dies_greedy();
     int dies_best_solucio_actual = dies_best_solucio;
-    escriure_sol();
+    escriure();
     int min = num_pel / num_sal;
-    if (num_pel % num_sal != 0) ++min;
+    if (num_pel % num_sal != 0) {
+        ++min;
+    }
+    int z = 0;
+    int w = 0;
     for (double t = 1; t > 0 and min < dies_best_solucio_actual; t *= 0.9) {
         vector<string> copia_pel = pel;
-        swap();
-        int dies_sol = dies_gready();
-        //si la solució és millor es canvia directament
+        vector<vector<int>> copia_res = res;
+        swap(z, w);
+        //generem un nou greedy
+        int dies_sol = dies_greedy();
+        //si la solució és millor que la actual es canvia directament
         if (dies_sol < dies_best_solucio_actual) {
             dies_best_solucio_actual = dies_sol;
             if (dies_sol < dies_best_solucio) {
-                escriure_sol();
+                escriure();
                 dies_best_solucio = dies_sol;
             }
-            //si la solució no és millor, es canvia amb probabilitat p
+            z = 0;
+            w = 0;
+        //si la solució no és millor, es canvia amb probabilitat p
         } else if (p(t, dies_sol, dies_best_solucio)) {
             dies_best_solucio_actual = dies_sol;
+            z = 0;
+            w = 0;
         } else {
             pel = copia_pel;
+            res = copia_res;
         }
     }
 }
