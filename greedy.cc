@@ -12,15 +12,19 @@ int num_pel;
 int num_res;
 int num_sal;
 vector<string> pel;
+//diccionari per alternar de pelis al seu index corresponent
 map<string, int> pel_num;
+//llista d'adjacencia que indica quines restriccions té la peli i
 vector<vector<int>> res;
 vector<string> sal;
 
+//funció que retorna el temps actual (ens servira per calcular el temps d'execucio del programa)
 double now()
 {
     return clock() / double(CLOCKS_PER_SEC);
 }
 
+//funció per llegir les dades del nostre fitxer de text amb la que inicialitzem totes les variables
 void llegir(const string& dades)
 {
     ifstream in(dades);
