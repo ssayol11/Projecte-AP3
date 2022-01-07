@@ -8,18 +8,23 @@ using namespace std;
 
 int num_pel;
 vector<string> pel;
+//diccionari que ens permet permutar entre cada peli i el seu index corresponent
 map<string, int> pel_num;
+//llista d'adjacència que indica quines restriccions té la peli de la posició i
 vector<vector<int>> res;
 int num_sal;
 vector<string> sal;
 string nom_fitxer;
+//matriu que indica l'organització del festival
 vector<vector<int>> plan;
 
+//funció que retorna el temps actual (ens servira per calcular el temps d'execucio del programa)
 double now()
 {
     return clock() / double(CLOCKS_PER_SEC);
 }
 
+//funció per llegir les dades del nostre fitxer de text amb la que inicialitzem totes les variables
 void read(const string& dades)
 {
     ifstream in(dades);
@@ -48,6 +53,7 @@ void read(const string& dades)
     in.close();
 }
 
+//funció per escriure la nostra sortida en un fitxer de text
 void escriure_sol()
 {
     ofstream myfile;
@@ -67,6 +73,7 @@ void escriure_sol()
     myfile.close();
 }
 
+//funció que genera una solució amb un algorisme greedy i retorna el nombre de dies que ocupa el festival de la solució generada
 int dies_gready()
 {
     plan = vector<vector<int>>(num_sal);
@@ -100,6 +107,7 @@ int dies_gready()
     return plan[0].size();
 }
 
+//funció de probabilitat de l'algorisme d'annealing de metaheuristica
 bool p(double t, int dies_sol, int dies_best_solucio)
 {
     double p = exp(-((dies_sol - dies_best_solucio) / t));
@@ -110,6 +118,7 @@ bool p(double t, int dies_sol, int dies_best_solucio)
     return false;
 }
 
+//funció que busca un nou vei
 void swap()
 {
     int i = (rand() % num_pel);
@@ -136,12 +145,14 @@ int main(int argc, char** argv)
         vector<string> copia_pel = pel;
         swap();
         int dies_sol = dies_gready();
+        //si la solució és millor es canvia directament
         if (dies_sol < dies_best_solucio_actual) {
             dies_best_solucio_actual = dies_sol;
             if (dies_sol < dies_best_solucio) {
                 escriure_sol();
                 dies_best_solucio = dies_sol;
             }
+            //si la solució no és millor, es canvia amb probabilitat p
         } else if (p(t, dies_sol, dies_best_solucio)) {
             dies_best_solucio_actual = dies_sol;
         } else {
